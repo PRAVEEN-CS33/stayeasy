@@ -31,6 +31,7 @@ Route::prefix('users')->controller(UserAuthController::class)->group(function ()
     Route::post('login', 'login');
     Route::post('logout', 'logout')->middleware('auth:sanctum');
 
+    //email verification for users
     Route::prefix('email')->middleware('auth:sanctum')->group(function () {
         Route::get('/verify', [UserAuthController::class, 'emailVerifyNotice'])
             ->name('verification.notice');
@@ -47,6 +48,7 @@ Route::prefix('owners')->controller(OwnerAuthController::class)->group(function 
     Route::post('login', 'login');
     Route::post('logout', 'logout')->middleware('auth:sanctum');
 
+    // email verification for owners
     Route::middleware('auth:sanctum')->group(function () {
         Route::get('/email/verify', [OwnerAuthController::class, 'emailVerifyNotice'])
             ->name('owner.verification.notice');
@@ -67,17 +69,19 @@ Route::middleware('auth:sanctum')->group( function () {
             Route::put('/{id}', [AccommodationDetailsController::class, 'update']);  
             Route::delete('/{id}', [AccommodationDetailsController::class, 'destroy']);
         });
+        // adding service and rent details by the owner
+        Route::middleware(['auth:owner'])->group(function () {
+            Route::apiResource('sharingrents', SharingRentController::class);
+            Route::apiResource('services', ServicesController::class);
+        });
+
         //owener view, update
         Route::get('/scheduledvisit', [OwnersController::class,'viewScheduledVisit']);
         Route::put('/scheduledvisit/{id}',[OwnersController::class,'updateScheduledVisit']);
         
         Route::get('/booking', [OwnersController::class,'viewBooking']);
         Route::put('/booking/{id}', [OwnersController::class,'updatebooking']);
-
-        Route::middleware(['auth:owner'])->group(function () {
-            Route::apiResource('sharingrents', SharingRentController::class);
-            Route::apiResource('services', ServicesController::class);
-        });
+        
     });
     //schedule to visit CRUD
     Route::middleware('can:user')->prefix('scheduletovisit')->group(function () {
