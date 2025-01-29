@@ -31,6 +31,5 @@ class AuthServiceProvider extends ServiceProvider
         Gate::define('book', [BookingsPolicy::class, 'view']);
         Gate::define('review', [ReviewsPolicy::class, 'view']);
         Gate::define('payment', [PaymentsPolicy::class, 'view']);
-        // Gate::define('delete', [ScheduledVisitsPolicy::class, 'delete']);
     }
 }

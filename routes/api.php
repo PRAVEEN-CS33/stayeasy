@@ -3,6 +3,7 @@
 use App\Http\Controllers\Auth\OwnerAuthController;
 use App\Http\Controllers\Auth\UserAuthController;
 use App\Http\Controllers\AccommodationDetailsController;
+use App\Http\Controllers\AnalyticController;
 use App\Http\Controllers\BookingsController;
 use App\Http\Controllers\OwnersController;
 use App\Http\Controllers\PaymentsController;
@@ -81,6 +82,8 @@ Route::middleware('auth:sanctum')->group( function () {
         
         Route::get('/booking', [OwnersController::class,'viewBooking']);
         Route::put('/booking/{id}', [OwnersController::class,'updatebooking']);
+
+        Route::get('analytics', [AnalyticController::class,'analytics']);
         
     });
     //schedule to visit CRUD
