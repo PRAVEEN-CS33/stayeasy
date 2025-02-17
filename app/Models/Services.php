@@ -13,15 +13,16 @@ class Services extends Model
     protected $primaryKey = 'accommodation_id';
     // public $timestamps = false;
     protected $fillable = [
-        'meals', 
-        'power_backup', 
-        'workout_zone', 
-        'housekeeping', 
-        'refrigerator', 
-        'washing_machine', 
-        'hot_water', 
-        'water_purifier', 
-        'television', 
+        'accommodation_id',
+        'meals',
+        'power_backup',
+        'workout_zone',
+        'housekeeping',
+        'refrigerator',
+        'washing_machine',
+        'hot_water',
+        'water_purifier',
+        'television',
         'biometric_entry'
     ];
 

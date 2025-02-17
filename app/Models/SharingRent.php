@@ -11,11 +11,11 @@ class SharingRent extends Model
     use HasFactory;
     protected $table = 'sharing_rents';
     protected $primaryKey = 'id';
-    // public $timestamps = false;
     protected $fillable = [
-        'accommodation_id', 
-        'sharing_type', 
-        'rent_amount'
+        'accommodation_id',
+        'sharing_type',
+        'rent_amount',
+        'available_slots'
     ];
     public static function getAllRents()
     {
@@ -24,7 +24,7 @@ class SharingRent extends Model
 
     public static function createRent(array $data)
     {
-        return self::create($data);
+        return self::insert($data);
     }
 
     public static function updateRent(SharingRent $rent, array $data)
@@ -36,6 +36,34 @@ class SharingRent extends Model
     public static function deleteRent(SharingRent $rent)
     {
         $rent->delete();
+    }
+
+    public static function checkAvailability($id, $slots)
+    {
+        return SharingRent::where('id', $id)
+            ->where('available_slots', '>=', $slots)
+            ->exists();
+    }
+    public static function reduceSlot($id, $slots)
+    {
+        $row =  SharingRent::where('id', $id)->first();
+        if($row){
+            $row->update([
+                'available_slots' => $row->available_slots - $slots
+            ]);
+        }
+    }
+    public static function addAvailability($id, $data)
+    {
+        $booking =  Bookings::where('id', $id)->first();
+        if($booking){
+            $rent = SharingRent::where('id', $booking->sharing_rent_type_id)->first();
+            if($rent){
+                $rent->update([
+                    'available_slots' => $rent->available_slots + $booking->no_of_slots
+                ]);
+            }
+        }
     }
     public function pgDetails(): BelongsTo
     {

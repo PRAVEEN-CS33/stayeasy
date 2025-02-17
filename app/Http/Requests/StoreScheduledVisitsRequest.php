@@ -25,6 +25,7 @@ class StoreScheduledVisitsRequest extends FormRequest
             'accommodation_id' => 'required',
             'owner_id' => 'required',
             'visit_date' => 'required',
+            'status' => 'sometimes'
         ];
     }
 }

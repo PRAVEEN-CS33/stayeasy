@@ -19,6 +19,7 @@ class SharingRentResource extends JsonResource
             'accommodation_id' => $this->accommodation_id,
             'sharing_type' => $this->sharing_type,
             'rent_amount' => $this->rent_amount,
+            'available_slots'=> $this->available_slots
         ];
     }
 }

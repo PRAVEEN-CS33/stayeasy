@@ -24,8 +24,11 @@ class UpdateBookingsRequest extends FormRequest
         return [
             'accommodation_id' => 'required|exists:accommodation_details,accommodation_id',
             'owner_id' => 'required|exists:owners,id',
-            'check_in' => 'required|date|after_or_equal:today',
-            'check_out' => 'required|date|after:check_in',
+            'sharing_rent_type_id'=> 'sometimes|numeric|exists:sharing_rents,id',
+            'no_of_slots'=> 'sometimes|numeric',
+            'check_in' => 'sometimes|date|after_or_equal:today',
+            'check_out' => 'sometimes|date|after:check_in',
+            'status' => 'sometimes|string'
         ];
     }
 }

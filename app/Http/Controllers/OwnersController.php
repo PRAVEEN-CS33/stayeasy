@@ -17,11 +17,11 @@ class OwnersController extends Controller
 {
     public function viewScheduledVisit()
     {
-        $scheduledVisit = ScheduledVisits::getVisitsByOwner(); 
+        $scheduledVisit = ScheduledVisits::getVisitsByOwner();
 
-        if(!$scheduledVisit) {
+        if (!$scheduledVisit) {
             return response()->json([
-                'message'=>'visit not found'
+                'message' => 'visit not found'
             ]);
         }
 
@@ -29,43 +29,38 @@ class OwnersController extends Controller
 
         return response()->json($scheduledVisit);
     }
-    public function updateScheduledVisit(UpdateScheduledVisitsRequest $request, $id)
+    public function updateScheduledVisit(Request $request, $id)
     {
-        $validated = $request->validated();
-        $scheduledVisit = ScheduledVisits::updateVisitsByOwner($validated, $id);
-        if(!$scheduledVisit) {
-            return response()->json([
-                'message'=>'visit not found'
-            ]);
-        }
-        $visit = ScheduledVisitsResource::make($scheduledVisit);
-        return response()->json([
-            'message'=> 'updated successfully',
-            'Updated Visit'=> $visit
+        $validated = $request->validate([
+            'status' => 'required|string|in:pending,accepted,canceled'
         ]);
+        $scheduledVisit = ScheduledVisits::updateVisitsByOwner($id,$validated);
+        if (!$scheduledVisit) return response()->json(['message' => 'visit not found']);
+        return response()->json(['message' => 'updated successfully',]);
     }
     public function viewBooking()
     {
         $booking = Bookings::getBookingsByOwner();
-        if(!$booking) {
+        if (!$booking) {
             return response()->json([
-                'message'=> 'booking not found'
+                'message' => 'booking not found'
             ]);
         }
         $booking = BookingResource::collection($booking);
         return response()->json($booking);
     }
-    public function updateBooking(UpdateBookingsRequest $request, $id)
+    public function updateBooking(Request $request, $id)
     {
-        $validated = $request->validated();
+        $validated = $request->validate([
+            'status' => 'required|string|in:pending,confirmed,canceled',
+        ]);
         $booking = Bookings::updateBookingsByOwner($validated, $id);
-        if(!$booking) {
-            return response()->json(['message'=> 'booking not found']);
+        if (!$booking) {
+            return response()->json(['message' => 'booking not found']);
         }
         $booking = BookingResource::make($booking);
         return response()->json([
-            'message'=> 'updated successfully',
-            'Updated'=> $booking
+            'message' => 'updated successfully',
         ]);
-    } 
+    }
 }

@@ -9,7 +9,9 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Ramsey\Uuid\Type\Decimal;
 use Spatie\FlareClient\Http\Exceptions\NotFound;
 
 class Bookings extends Model
@@ -18,20 +20,22 @@ class Bookings extends Model
     protected $table = 'bookings';
     protected $primaryKey = 'id';
     protected $fillable = [
-        'accommodation_id',
         'user_id',
+        'accommodation_id',
         'owner_id',
         'check_in',
         'check_out',
         'amount',
         'status',
-        'booking_date'
+        'booking_date',
+        'sharing_rent_type_id',
+        'no_of_slots'
     ];
 
     public static function getBookingAnalytics($auth_id)
     {
         $OwnerBookingData = Bookings::where("owner_id", $auth_id);
-        
+
         $data = [
             "Total Bookings Today"
             => $OwnerBookingData->clone()->where('booking_date', today())
@@ -39,49 +43,49 @@ class Bookings extends Model
 
             "Total bookings this week"
             => $OwnerBookingData->clone()->whereBetween("booking_date", [
-                    now()->startOfWeek(), 
-                    now()->endOfWeek()
-                ])->count(),
+                now()->startOfWeek(),
+                now()->endOfWeek()
+            ])->count(),
 
             "Total bookings this month"
             => $OwnerBookingData->clone()->whereBetween("booking_date", [
-                now()->startOfMonth(), 
+                now()->startOfMonth(),
                 now()->endOfMonth()
-                ])->count(),
+            ])->count(),
 
             "Total canceled bookings this month"
             => $OwnerBookingData->clone()->where("status", "canceled")
                 ->whereBetween("booking_date", [
-                    now()->startOfMonth(), 
+                    now()->startOfMonth(),
                     now()->endOfMonth()
                 ])->count(),
 
             "Most booked property this month"
-            =>$OwnerBookingData->clone()->whereBetween("booking_date", [
-                    now()->startOfMonth(), 
-                    now()->endOfMonth()
-                ])
+            => $OwnerBookingData->clone()->whereBetween("booking_date", [
+                now()->startOfMonth(),
+                now()->endOfMonth()
+            ])
                 ->select("accommodation_id", DB::raw('count(*) as total'))
                 ->groupBy("accommodation_id")
                 ->orderByDesc("total")
                 ->first(),
 
             "Least booked property this month"
-            =>$OwnerBookingData->clone()->whereBetween("booking_date", [
-                    now()->startOfMonth(), 
-                    now()->endOfMonth()
-                ])
+            => $OwnerBookingData->clone()->whereBetween("booking_date", [
+                now()->startOfMonth(),
+                now()->endOfMonth()
+            ])
                 ->select("accommodation_id", DB::raw('count(*) as total'))
                 ->groupBy("accommodation_id")
                 ->orderBy("total")
-                ->first(), 
+                ->first(),
 
-            "Average stay duration per booking"
-            =>$OwnerBookingData->clone()->selectRaw('AVG(DATEDIFF(check_out, check_in)) as avg')
+            "Average stay days per booking"
+            => $OwnerBookingData->clone()->selectRaw('AVG(DATEDIFF(check_out, check_in)) as avg')
                 ->value('avg'),
 
             "Longest stay booking this month"
-            =>$OwnerBookingData->clone()->whereMonth('check_in', now()->month)
+            => $OwnerBookingData->clone()->whereMonth('check_in', now()->month)
                 ->selectRaw('id as booking_id, accommodation_id, user_id, DATEDIFF(check_out, check_in) as max')
                 ->orderByDesc('max')
                 ->first(),
@@ -91,7 +95,7 @@ class Bookings extends Model
                 ->groupBy(DB::raw('DAY(check_in)'))
                 ->orderByDesc('count')
                 ->first()
-                ->day,
+                ->day ?? null,
         ];
         return $data;
     }
@@ -125,33 +129,42 @@ class Bookings extends Model
             ->pluck('accommodation_id');
 
         return [
-            "Overall occupancy rate" => $total > 0 ? ($occupancy / $total) * 100 : 0,
+            "Overall occupancy rate" => $total > 0 ? round(($occupancy / $total) * 100, 2) : 0,
 
             "Highest occupancy rate property" => $highest ? [
-                "rate" => $occupancy > 0 ? ($highest->total / $occupancy) * 100 : 0,
+                "rate" => $total > 0 ? round(($highest->total / $total) * 100, 2) : 0,
                 "Accommodation" => $highest->accommodation_id
             ] : null,
 
             "Lowest occupancy rate property" => $lowest ? [
-                "rate" => $occupancy > 0 ? ($lowest->total / $occupancy) * 100 : 0,
+                "rate" => $total > 0 ? round(($lowest->total / $total) * 100, 2) : 0,
                 "Accommodation" => $lowest->accommodation_id
             ] : null,
 
-            "Average booking lead time" => $Average,
+            "Average booking lead days" => round($Average, 2),
 
             "Properties fully booked at least once per month" => $fullBooked
         ];
     }
 
+
     public static function getBooking()
     {
-        return self::where('user_id', auth()->user()->id);
+        return Bookings::with(['accommodationDetails', 'user', 'payment'])
+            ->where("user_id", auth()->user()->id)
+            ->orderByDesc('status')
+            ->orderByDesc('updated_at')
+            ->get();
     }
     public static function saveBooking($data)
     {
-        self::create($data);
+        $data['user_id'] = auth('user')->id();
+        $data['booking_date'] = now();
+
+        $data = self::create($data);
 
         $userEmail = User::find(auth()->user()->id)->eamil;
+
         SendNotificationJob::dispatch(
             new NewBookingNotification($data),
             $userEmail
@@ -162,6 +175,8 @@ class Bookings extends Model
             new NewBookingNotification($data),
             $ownerEmail
         );
+
+        return $data->id;
     }
 
     public static function updateBooking($data, $id)
@@ -170,12 +185,8 @@ class Bookings extends Model
             ->where('id', $id)
             ->first();
 
-        if (!$booking) {
-            return null;
-        }
-
+        if (!$booking) return null;
         $booking->update($data);
-
         return $booking;
     }
     public static function deleteBooking($id)
@@ -193,10 +204,13 @@ class Bookings extends Model
 
     public static function getBookingsByOwner()
     {
-        return self::where("owner_id", auth('owner')->id());
+        $bookings = self::with(['accommodationDetails', 'user', 'payment'])
+            ->where("owner_id", auth('owner')->id())
+            ->get();
+        return $bookings;
     }
 
-    public static function updateBookingByUser($data, $id)
+    public static function updateBookingsByOwner($data, $id)
     {
         $booking  = self::where('owner_id', auth('owner')->id())
             ->where('id', $id)

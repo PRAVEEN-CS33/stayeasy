@@ -11,7 +11,7 @@ class UpdateScheduledVisitsRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return auth('owner')->check();
+        return true;
     }
 
     /**
@@ -22,10 +22,10 @@ class UpdateScheduledVisitsRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'accommodation_id' => 'required',
-            'owner_id' => 'required',
-            'visit_date' => 'required',
-            'status' => 'required|string|max:100'
+            'accommodation_id' => 'required|exists:accommodation_details,accommodation_id',
+            'owner_id' => 'required|exists:owners,id',
+            'visit_date' => "sometimes|",
+            'status' => 'sometimes|string|max:100'
         ];
     }
 }

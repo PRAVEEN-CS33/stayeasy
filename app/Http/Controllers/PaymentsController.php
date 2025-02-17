@@ -13,7 +13,7 @@ class PaymentsController extends Controller
     {
         $payments = Payments::getPayments();
         $payments = PaymentsResource::collection($payments);
-        
+
         return response()->json($payments);
     }
     public function create(StorePaymentsRequest $request)
@@ -22,15 +22,14 @@ class PaymentsController extends Controller
             $validated = $request->validated();
             $validated['payment_date'] = now();
             Payments::makePayment($validated);
-
             return response()->json([
-                'message'=>'Payment failed. Please try again later.'
+                'message'=>'Payment successful'
             ], 201);
         }catch (\Exception $e) {
             return response()->json([
                 'message'=>'Payment failed. Please try again later.'
             ], 500);
-        } 
-        
+        }
+
     }
 }

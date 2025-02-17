@@ -18,13 +18,13 @@ class Owners extends Authenticatable implements MustVerifyEmail
     protected $table = 'owners';
     protected $primaryKey = 'id';
     protected $fillable = [
-        'name', 
-        'contact_number', 
-        'email', 
+        'name',
+        'phone',
+        'email',
         'password',
         'address'
     ];
-    
+
     protected $hidden = [
         'password',
         'remember_token',

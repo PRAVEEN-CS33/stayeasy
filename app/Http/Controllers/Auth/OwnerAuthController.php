@@ -16,13 +16,12 @@ class OwnerAuthController extends Controller
     //register
     public function register(RegisterOwnersRequest $request)
     {
-            $validated = $request->validated();
-            $token = Owners::registerNewOwner($validated);
+        $validated = $request->validated();
+        $token = Owners::registerNewOwner($validated);
 
-            return response()->json([ 
-                'message' => 'owner registered successfully. please verify the email', 
-                'token'=> $token
-            ]);
+        return response()->json([
+            'message' => 'owner registered successfully. please verify the email'
+        ]);
     }
 
     //login
@@ -33,7 +32,7 @@ class OwnerAuthController extends Controller
 
         return response()->json([
             'message' => 'owner login successfully',
-            'token'=> $token
+            'token' => $token
         ]);
     }
 
@@ -49,21 +48,24 @@ class OwnerAuthController extends Controller
         return response()->json([
             'message' => 'No logged-in user found'
         ], 401);
-    }  
-
-    //email verification
-    public function emailVerifyNotice(){
-        return response()->json(['message'=> 'Email verification required.'],200);
     }
 
-    public function verifyEmail(EmailVerificationRequest $request){
+    //email verification
+    public function emailVerifyNotice()
+    {
+        return response()->json(['message' => 'Email verification required.'], 200);
+    }
+
+    public function verifyEmail(EmailVerificationRequest $request)
+    {
         $request->fulfill();
         return response()->json(['message' => 'Email verified successfully.']);
-    }   
+    }
 
-    public function resendEmailVerification(Request $request){
-        if($request->user()->hasVerifiedEmail()){
-            return response()->json(['message'=> 'Email already verified.'],200);
+    public function resendEmailVerification(Request $request)
+    {
+        if ($request->user()->hasVerifiedEmail()) {
+            return response()->json(['message' => 'Email already verified.'], 200);
         }
         $request->user()->sendEmailVerificationNotification();
         return response()->json(['message' => 'Verification email sent.']);

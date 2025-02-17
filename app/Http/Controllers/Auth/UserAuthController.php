@@ -18,7 +18,7 @@ class UserAuthController extends Controller
         $token = User::newRegister($validated);
 
         return response()->json( [
-            'message' => 'Registered successfully. Please verify your email.', 
+            'message' => 'Registered successfully. Please verify your email.',
             'token'=> $token
         ]);
     }
@@ -39,7 +39,7 @@ class UserAuthController extends Controller
             $request->user()->currentAccessToken()->delete();
             return response()->json(['message'=> 'User Loged out successfully'], 200);
         }
-        return response()->json(['message'=> 'You are nit logged in'], 200);
+        return response()->json(['message'=> 'You are not logged in'], 200);
     }
 
     //Email verification :-
@@ -50,7 +50,7 @@ class UserAuthController extends Controller
     public function verifyEmail(EmailVerificationRequest $request){
         $request->fulfill();
         return response()->json(['message' => 'Email verified successfully.']);
-    }   
+    }
 
     public function resendEmailVerification(Request $request){
         if($request->user()->hasVerifiedEmail()){

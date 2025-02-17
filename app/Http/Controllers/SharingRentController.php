@@ -22,9 +22,12 @@ class SharingRentController extends Controller
 
     public function store(StoreSharingRentRequest $request)
     {
-        $validated = $request->validated();
-        $sharingRent = SharingRent::createRent($validated);
-        return new SharingRentResource($sharingRent);
+        $validatedData = $request->input('data');
+        SharingRent::createRent($validatedData);
+
+        return response()->json([
+            'message' => 'Rents saved successfully'
+        ], 201);
     }
 
     public function update(UpdateSharingRentRequest $request, SharingRent $sharingRent)

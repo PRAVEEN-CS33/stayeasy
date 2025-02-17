@@ -21,14 +21,16 @@ class StoreBookingsRequest extends FormRequest
      */
     public function rules(): array
     {
+        // dd('ok');
         return [
             'accommodation_id' => 'required|exists:accommodation_details,accommodation_id',
-            'owner_id' => 'required|exists:Owners,id',
+            'owner_id' => 'required|exists:owners,id',
+            'sharing_rent_type_id'=> 'required|numeric|exists:sharing_rents,id',
+            'no_of_slots'=> 'required|numeric',
             'check_in' => 'required|date|after_or_equal:today',
             'check_out' => 'required|date|after:check_in',
             'amount' => 'required|numeric|min:0',
-            'status' => 'required|in:pending,confirmed,canceled',
-            'booking_date' => 'required|date|before_or_equal:today',
+            'status' => 'string',
         ];
     }
 }

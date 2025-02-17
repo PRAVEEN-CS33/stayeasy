@@ -12,9 +12,9 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('owners', function (Blueprint $table) {
-            $table->id()->autoIncrement();   
+            $table->id()->autoIncrement();
             $table->string('name');
-            $table->string('contact_number');
+            $table->string('phone');
             $table->string('email');
             $table->string('password');
             $table->string('address');

@@ -19,5 +19,5 @@ Route::fallback(function () {
     return response()->json(['message' => 'Resource path not found.'], 404);
 });
 
-Route::get('/accommodation', [AccommodationDetailsController::class, 'show']);
+// Route::get('/accommodation', [AccommodationDetailsController::class, 'show']);
 

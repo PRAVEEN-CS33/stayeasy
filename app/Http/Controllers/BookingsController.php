@@ -6,6 +6,7 @@ use App\Http\Requests\StoreBookingsRequest;
 use App\Http\Requests\UpdateBookingsRequest;
 use App\Http\Resources\BookingResource;
 use App\Models\Bookings;
+use App\Models\SharingRent;
 use Illuminate\Http\Request;
 
 class BookingsController extends Controller
@@ -19,9 +20,7 @@ class BookingsController extends Controller
 
         $bookings = BookingResource::collection($bookings);
 
-        return response()->json([
-            "Bookings"=> $bookings
-        ]);
+        return response()->json($bookings);
     }
 
     /**
@@ -29,15 +28,22 @@ class BookingsController extends Controller
      */
     public function create(StoreBookingsRequest $request)
     {
-        // Validation rules for booking
         $validated = $request->validated();
-        $validated['user_id'] = auth('user')->id();
+        $validated['booking_date'] = now();
+        $isAvailableSlot = SharingRent::checkAvailability($validated['sharing_rent_type_id'], $validated['no_of_slots']);
 
-        Bookings::saveBooking($validated);
+        if (! $isAvailableSlot) {
+            return response()->json(['message' => 'Sharing slot not available']);
+        }
+
+        $id = Bookings::saveBooking($validated);
+
+        SharingRent::reduceSlot($validated['sharing_rent_type_id'], $validated['no_of_slots']);
 
         return response()->json([
-            'message' => 'booking successfull'
-        ]);
+            'message' => 'booking successfull',
+            "id" => $id
+        ], 200);
     }
     /**
      * Update the specified resource in storage.
@@ -45,18 +51,16 @@ class BookingsController extends Controller
     public function update(UpdateBookingsRequest $request, $id)
     {
         $validated = $request->validated();
+        if ($validated['status'] === 'canceled') {
+            SharingRent::addAvailability($id, $validated);
+        }
         $booking = Bookings::updateBooking($validated, $id);
-
         if (!$booking) {
             return response()->json([
                 'message' => 'Booking not found',
             ], 404);
         }
-
-        return response()->json([
-            'message' => 'Booking updated successfully',
-            'booking' => $booking,
-        ]);
+        return response()->json(['message' => 'Booking updated successfully']);
     }
 
     /**

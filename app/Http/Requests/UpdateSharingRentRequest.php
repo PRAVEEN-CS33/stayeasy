@@ -14,7 +14,7 @@ class UpdateSharingRentRequest extends FormRequest
         return auth('owner')->check();
     }
 
-    /** 
+    /**
      * Get the validation rules that apply to the request.
      *
      * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array<mixed>|string>
@@ -24,6 +24,7 @@ class UpdateSharingRentRequest extends FormRequest
         return [
             'sharing_type' => 'sometimes|required|string',
             'rent_amount' => 'sometimes|required|numeric|min:0',
+            'available_slots' => 'sometimes|required|numeric|min:0',
         ];
     }
 }

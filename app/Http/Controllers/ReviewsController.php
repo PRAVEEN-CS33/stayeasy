@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\StorereviewsRequest;
 use App\Http\Requests\UpdatereviewsRequest;
 use App\Http\Resources\ReviewResource;
 use App\Models\Reviews;
@@ -18,10 +19,11 @@ class ReviewsController extends Controller
 
         return response()->json($reviews);
     }
-    public function create(Request $request)
+    public function create(StorereviewsRequest $request)
     {
         $validated = $request->validated();
         $validated['user_id'] = Auth::user()->id;
+        $validated['review_date'] = now();
 
         Reviews::createReviews($validated);
 

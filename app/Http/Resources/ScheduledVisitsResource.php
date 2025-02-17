@@ -16,12 +16,13 @@ class ScheduledVisitsResource extends JsonResource
     {
         return [
             'visit_id' => $this->id,
-            'accommodation_id' => $this->accommodation_id,
             'owner_id' => $this->owner_id,
             'user_id' => $this->user_id,
-            'visit_date' => $this->visit_date->format('Y-m-d'),
+            'user_name' => $this->user->name ?? null,
+            'accommodation_id' => $this->accommodation_id,
+            'accommodation_name' => $this->accommodationDetails->accommodation_name ?? null,
+            'visit_date' => $this->visit_date,
             'status' => $this->status,
-            'accommodation_name' => $this->accommodation->accommodation_name ?? null,
         ];
     }
 }

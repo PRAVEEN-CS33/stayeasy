@@ -23,14 +23,21 @@ class AccommodationDetailsController extends Controller
         $accommodationDetails = AccommodationDetails::getAccommodationDetails();
         $accommodation = AccommodationResource::collection($accommodationDetails);
 
-        return response()->json([
-            'data' => $accommodation
-        ]);
+        return response()->json($accommodation);
+    }
+
+    public function filter(Request $request)
+    {
+        $filters = $request->only(['date', 'location', 'persons', 'reviews', 'rentRange', 'preferredBy']);
+        $accommodationDetails = AccommodationDetails::getFilteredAccommodationDetails($filters);
+        $accommodation = AccommodationResource::collection($accommodationDetails);
+        return response()->json($accommodation);
     }
     /**
      * Store a newly created resource in storage.
      */
-    public function view(){
+    public function view()
+    {
         $accommodation = AccommodationDetails::getAccommodationDetailsById(auth()->user()->id);
         if (!$accommodation) {
             return response()->json([
@@ -38,25 +45,26 @@ class AccommodationDetailsController extends Controller
             ], 404);
         }
         $accommodation = AccommodationResource::collection($accommodation);
-        return response()->json(['data'=> $accommodation]);
+        return response()->json($accommodation);
     }
     public function store(StoreAccommodation_detailsRequest $request)
     {
         $validated = $request->validated();
         $validated['owner_id'] = auth('owner')->id();
 
-        AccommodationDetails::createNewAccommodation($validated);
+        $id = AccommodationDetails::createNewAccommodation($validated);
 
         return response()->json([
-            'message'=>'details saved successfully'
-        ]);
+            'message' => 'details saved successfully',
+            'accommodation_id' => $id
+        ], 201);
     }
     /**
      * Update the specified resource in storage.
      */
     public function update(UpdateAccommodation_detailsRequest $request, $id)
     {
-        $validated = $request->validated();   
+        $validated = $request->validated();
         $validated['owner_id'] = auth('owner')->id();
 
         $updatedAccommodation = AccommodationDetails::updateAccommodationDetails($id, $validated);

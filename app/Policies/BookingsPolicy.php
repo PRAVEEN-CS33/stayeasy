@@ -11,6 +11,6 @@ class BookingsPolicy
 {
     public function view(User $user): bool
     {
-        return auth('user')->check() && auth('user')->user()->id === $user->id;
+        return auth()->check() && auth()->user()->id === $user->id;
     }
 }

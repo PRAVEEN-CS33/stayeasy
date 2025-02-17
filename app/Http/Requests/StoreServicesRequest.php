@@ -23,16 +23,16 @@ class StoreServicesRequest extends FormRequest
     {
         return [
             'accommodation_id' => 'required|exists:accommodation_details,accommodation_id',
-            'meals' => 'required|boolean',
-            'power_backup' => 'required|boolean',
-            'workout_zone' => 'required|boolean',
-            'housekeeping' => 'required|boolean',
-            'refrigerator' => 'required|boolean',
-            'washing_machine' => 'required|boolean',
-            'hot_water' => 'required|boolean',
-            'water_purifier' => 'required|boolean',
-            'television' => 'required|boolean',
-            'biometric_entry' => 'required|boolean',
+            'meals' => 'boolean',
+            'power_backup' => 'boolean',
+            'workout_zone' => 'boolean',
+            'housekeeping' => 'boolean',
+            'refrigerator' => 'boolean',
+            'washing_machine' => 'boolean',
+            'hot_water' => 'boolean',
+            'water_purifier' => 'boolean',
+            'television' => 'boolean',
+            'biometric_entry' => 'boolean',
         ];
     }
 }

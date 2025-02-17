@@ -15,15 +15,20 @@ class BookingResource extends JsonResource
     public function toArray(Request $request): array
     {
         return [
-            "id"=> $this->id,
+            "id" => $this->id,
+            "accommodation_id" => $this->accommodation_id,
+            "accommodation_name" => $this->accommodationDetails->accommodation_name ?? null,
             "user_id" => $this->user_id,
-            "accommodation_id"> $this->accommodation_id,
-            "owner_id"=>$this->owner_id,
-            "check_in"=> $this->check_in,
-            "check_out"=> $this->check_out,
-            "amount"=> $this->amount,
-            "status"=> $this->status,
-            "booking_date"=> $this->booking_date
+            "user_name" => $this->user->name ?? null,
+            "owner_id" => $this->owner_id,
+            "sharing_rent_type_id"=> $this->sharing_rent_type_id,
+            "no_of_slots" => $this->no_of_slots,
+            "check_in" => $this->check_in,
+            "check_out" => $this->check_out,
+            "amount" => $this->amount,
+            "booking_status" => $this->status,
+            "booking_date" => $this->booking_date,
+            "payment_status" => $this->payment->first()->payment_status ?? null
         ];
     }
 }

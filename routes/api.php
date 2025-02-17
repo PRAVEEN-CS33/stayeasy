@@ -11,107 +11,93 @@ use App\Http\Controllers\ReviewsController;
 use App\Http\Controllers\ScheduledVisitsController;
 use App\Http\Controllers\ServicesController;
 use App\Http\Controllers\SharingRentController;
-use App\Models\Bookings;
-use Illuminate\Http\Request;
+use App\Http\Controllers\WishlistController;
 use Illuminate\Support\Facades\Route;
 
-/*
-|--------------------------------------------------------------------------
-| API Routes
-|--------------------------------------------------------------------------
-|
-| Here is where you can register API routes for your application. These
-| routes are loaded by the RouteServiceProvider and all of them will
-| be assigned to the "api" middleware group. Make something great!
-|
-*/
+// Get accommodation
+Route::get('/accommodation', [AccommodationDetailsController::class, 'show']);
+Route::post('/filter-accommodation', [AccommodationDetailsController::class, 'filter'])->withoutMiddleware(['auth:sanctum', 'owner']);
 
-//User
-Route::prefix('users')->controller(UserAuthController::class)->group(function () {
-    Route::post('register', 'register');
-    Route::post('login', 'login');
-    Route::post('logout', 'logout')->middleware('auth:sanctum');
+// User Authentication
+Route::post('/users/register', [UserAuthController::class, 'register']);
+Route::post('/users/login', [UserAuthController::class, 'login']);
+Route::post('/users/logout', [UserAuthController::class, 'logout'])->middleware('auth:sanctum');
 
-    //email verification for users
-    Route::prefix('email')->middleware('auth:sanctum')->group(function () {
-        Route::get('/verify', [UserAuthController::class, 'emailVerifyNotice'])
-            ->name('verification.notice');
-        Route::get('/verify/{id}/{hash}', [UserAuthController::class, 'verifyEmail'])
-            ->middleware(['signed'])
-            ->name('verification.verify');
-        Route::post('/resend', [UserAuthController::class, 'resendEmailVerification'])
-            ->name('verification.resend');
-    });
+// Email verification for users
+Route::middleware('auth:sanctum')->group(function () {
+    Route::get('/email/verify', [UserAuthController::class, 'emailVerifyNotice'])->name('verification.notice');
+    Route::get('/email/verify/{id}/{hash}', [UserAuthController::class, 'verifyEmail'])->middleware(['signed'])->name('verification.verify');
+    Route::post('/email/resend', [UserAuthController::class, 'resendEmailVerification'])->name('verification.resend');
 });
-//owners
-Route::prefix('owners')->controller(OwnerAuthController::class)->group(function () {
-    Route::post('register', 'register');
-    Route::post('login', 'login');
-    Route::post('logout', 'logout')->middleware('auth:sanctum');
 
-    // email verification for owners
-    Route::middleware('auth:sanctum')->group(function () {
-        Route::get('/email/verify', [OwnerAuthController::class, 'emailVerifyNotice'])
-            ->name('owner.verification.notice');
-        Route::get('/email/verify/{id}/{hash}', [OwnerAuthController::class, 'verifyEmail'])
-            ->middleware(['signed'])
-            ->name('owner.verification.verify');
-        Route::post('/email/resend', [OwnerAuthController::class, 'resendEmailVerification'])
-            ->name('owner.verification.resend');
-    });
-}); 
-Route::middleware('auth:sanctum')->group( function () {
-    //accommodation CRUD
-    Route::middleware('owner')->prefix('owners')->group(function () {
-        
-        Route::prefix('accommodation')->group(function () {
-            Route::get('/', [AccommodationDetailsController::class, 'view']);
-            Route::post('/', [AccommodationDetailsController::class, 'store']);      
-            Route::put('/{id}', [AccommodationDetailsController::class, 'update']);  
-            Route::delete('/{id}', [AccommodationDetailsController::class, 'destroy']);
-        });
-        // adding service and rent details by the owner
-        Route::middleware(['auth:owner'])->group(function () {
-            Route::apiResource('sharingrents', SharingRentController::class);
-            Route::apiResource('services', ServicesController::class);
-        });
+// Owner Authentication
+Route::post('/owners/register', [OwnerAuthController::class, 'register']);
+Route::post('/owners/login', [OwnerAuthController::class, 'login']);
+Route::post('/owners/logout', [OwnerAuthController::class, 'logout'])->middleware('auth:sanctum');
 
-        //owener view, update
-        Route::get('/scheduledvisit', [OwnersController::class,'viewScheduledVisit']);
-        Route::put('/scheduledvisit/{id}',[OwnersController::class,'updateScheduledVisit']);
-        
-        Route::get('/booking', [OwnersController::class,'viewBooking']);
-        Route::put('/booking/{id}', [OwnersController::class,'updatebooking']);
+// Email verification for owners
+Route::middleware('auth:sanctum')->group(function () {
+    Route::get('/email/verify', [OwnerAuthController::class, 'emailVerifyNotice'])->name('owner.verification.notice');
+    Route::get('/email/verify/{id}/{hash}', [OwnerAuthController::class, 'verifyEmail'])->middleware(['signed'])->name('owner.verification.verify');
+    Route::post('/email/resend', [OwnerAuthController::class, 'resendEmailVerification'])->name('owner.verification.resend');
+});
 
-        Route::get('analytics', [AnalyticController::class,'analytics']);
-        
+// Protected routes
+Route::middleware('auth:sanctum')->group(function () {
+
+    // Accommodation CRUD
+    Route::get('/owners/accommodation', [AccommodationDetailsController::class, 'view']);
+    Route::post('/owners/accommodation', [AccommodationDetailsController::class, 'store']);
+    Route::put('/owners/accommodation/{id}', [AccommodationDetailsController::class, 'update']);
+    Route::delete('/owners/accommodation/{id}', [AccommodationDetailsController::class, 'destroy']);
+
+    // Services & Sharing Rents
+    Route::middleware(['auth:owner'])->group(function () {
+        Route::apiResource('/owners/sharingrents', SharingRentController::class);
+        Route::apiResource('/owners/services', ServicesController::class);
     });
-    //schedule to visit CRUD
-    Route::middleware('can:user')->prefix('scheduletovisit')->group(function () {
-        Route::get('/', [ScheduledVisitsController::class, 'show']);
-        Route::post('/', [ScheduledVisitsController::class, 'store']);
-        Route::put('/{scheduledVisit}', [ScheduledVisitsController::class, 'update']);
-        Route::delete('/{scheduledVisit}', [ScheduledVisitsController::class, 'destroy']);
+
+    // Owner Scheduled Visits & Bookings
+    Route::get('/owners/scheduledvisit', [OwnersController::class, 'viewScheduledVisit']);
+    Route::put('/owners/scheduledvisit/{id}', [OwnersController::class, 'updateScheduledVisit']);
+    Route::get('/owners/booking', [OwnersController::class, 'viewBooking']);
+    Route::put('/owners/booking/{id}', [OwnersController::class, 'updateBooking']);
+    Route::get('/owners/analytics', [AnalyticController::class, 'analytics']);
+
+    // Schedule to Visit CRUD
+    Route::middleware('can:user')->group(function () {
+        Route::get('/scheduletovisit', [ScheduledVisitsController::class, 'show']);
+        Route::post('/scheduletovisit', [ScheduledVisitsController::class, 'store']);
+        Route::put('/scheduletovisit/{scheduledVisit}', [ScheduledVisitsController::class, 'update']);
+        Route::delete('/scheduletovisit/{scheduledVisit}', [ScheduledVisitsController::class, 'destroy']);
     });
+
     // Bookings CRUD
-    Route::middleware('can:book')->prefix('booking')->group(function () {
-        Route::get('/', [BookingsController::class,'index']);
-        Route::post('/', [BookingsController::class,'create']);
-        Route::put('/{booking}', [BookingsController::class,'update']);
-        Route::delete('/{booking}', [BookingsController::class,'destroy']);
-    });
-    //review CRUD
-    Route::middleware('can:review')->prefix('review')->group(function () {
-        Route::get('/', [ReviewsController::class,'index']);
-        Route::post('/', [ReviewsController::class,'create']);
-        Route::put('/{review}', [ReviewsController::class,'update']);
-        Route::delete('/{review}', [ReviewsController::class,'destroy']);
-    });
-    //payment CRUD
-    Route::middleware('can:payment')->prefix('payment')->group(function () {
-        Route::get('/', [PaymentsController::class,'index']);
-        Route::post('/', [PaymentsController::class,'create']);
+    Route::middleware('can:book')->group(function () {
+        Route::get('/booking', [BookingsController::class, 'index']);
+        Route::post('/booking', [BookingsController::class, 'create']);
+        Route::put('/booking/{booking}', [BookingsController::class, 'update']);
+        Route::delete('/booking/{booking}', [BookingsController::class, 'destroy']);
     });
 
+    // Reviews CRUD
+    Route::middleware('can:review')->group(function () {
+        Route::get('/review', [ReviewsController::class, 'index']);
+        Route::post('/review', [ReviewsController::class, 'create']);
+        Route::put('/review/{review}', [ReviewsController::class, 'update']);
+        Route::delete('/review/{review}', [ReviewsController::class, 'destroy']);
+    });
+
+    // Payments CRUD
+    Route::middleware('can:payment')->group(function () {
+        Route::get('/payment', [PaymentsController::class, 'index']);
+        Route::post('/payment', [PaymentsController::class, 'create']);
+    });
+
+    //wishlist api
+    Route::middleware('can:user')->group(function () {
+        Route::get('/wishlist', [WishlistController::class, 'index']);
+        Route::post('/wishlist', [WishlistController::class, 'createWishList']);
+        Route::delete('/wishlist/{wishlist}', [WishlistController::class, 'destroyWishList']);
+    });
 });
-

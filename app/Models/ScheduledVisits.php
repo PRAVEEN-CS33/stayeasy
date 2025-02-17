@@ -103,18 +103,19 @@ class ScheduledVisits extends Model
 
     public static function getVisitByUser()
     {
-        $visits = self::where('id', auth('user')->id());
-        if (!$visits) return false;
-
-        return $visits;
+        return ScheduledVisits::with(['accommodationDetails', 'user'])
+            ->where('user_id', auth()->user()->id)
+            ->orderByDesc("status")
+            ->orderByDesc('updated_at')
+            ->get();
     }
 
     public static function getVisitsByOwner()
     {
-        $visits = self::where('owner_id', auth('owner')->id());
-        if (!$visits) return false;
-
-        return $visits;
+        return ScheduledVisits::with(['accommodationDetails', 'user'])
+            ->where('owner_id', auth('owner')->id())
+            ->orderByDesc('updated_at')
+            ->get();
     }
 
     public static function createVisit($data)
@@ -145,12 +146,12 @@ class ScheduledVisits extends Model
             ->first();
         if (!$visits) return false;
         $visits->update($data);
-
         return true;
     }
+
     public static function updateVisitsByUser($id, $data)
     {
-        $visits = self::where("user_id", auth('user')->id())
+        $visits = self::where("user_id", auth()->user()->id)
             ->where('id', $id)
             ->first();
         if (!$visits) return false;
@@ -168,9 +169,9 @@ class ScheduledVisits extends Model
         return true;
     }
 
-    public function user(): BelongsTo
+    public function user()
     {
-        return $this->belongsTo(User::class, 'id');
+        return $this->hasOne(User::class, 'id', 'user_id');
     }
 
     public function owner(): BelongsTo

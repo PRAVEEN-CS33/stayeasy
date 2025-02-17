@@ -25,8 +25,7 @@ class RegisterOwnersRequest extends FormRequest
             "name"=> "required|string|max:255",
             "email"=> "required|string|max:255|email|unique:owners",
             "password"=> "required|confirmed|string|min:8",
-            'contact_number'=> 'required|string|size:10',
-            "accommodation_id"=> "required|int",
+            'phone'=> 'required|string|size:10',
             "address"=> "required|string",
         ];
     }

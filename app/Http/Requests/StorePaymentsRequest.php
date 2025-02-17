@@ -22,9 +22,10 @@ class StorePaymentsRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'booking_id' => 'required|exists:bookings,id|numeric', 
-            'amount' => 'required|numeric|min:0',  
-            'payment_status' => 'required|in:pending,completed,failed,canceled',
+            'booking_id' => 'required|exists:bookings,id|numeric',
+            'amount' => 'required|numeric|min:0',
+            'payment_status' => 'required',
         ];
+        // |in:pending,completed,failed,canceled
     }
 }

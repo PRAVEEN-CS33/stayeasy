@@ -4,14 +4,14 @@ namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
 
-class StorereviewsRequest extends FormRequest
+class UpdatewishlistRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
      */
     public function authorize(): bool
     {
-        return auth('user')->id();
+        return false;
     }
 
     /**
@@ -22,9 +22,7 @@ class StorereviewsRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'accommodation_id' => 'required|exists:accommodation_details,accommodation_id',
-            'rating' => 'required|integer|between:1,5',
-            'review_text' => 'required|string|max:1000',
+            //
         ];
     }
 }

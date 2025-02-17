@@ -24,9 +24,7 @@ class ScheduledVisitsController extends Controller
 
         $scheduledVisits = ScheduledVisitsResource::collection($Visits);
 
-        return response()->json([
-            "visits"=> $scheduledVisits
-        ]);
+        return response()->json($scheduledVisits);
     }
     /**
      * Store a newly created resource in storage.
@@ -48,8 +46,6 @@ class ScheduledVisitsController extends Controller
     public function update(UpdateScheduledVisitsRequest $request,  $id)
     {
         $validated = $request->validated();
-        $validated['user_id'] = auth('user')->id();
-
         $visit = ScheduledVisits::updateVisitsByUser($id, $validated);
         if (! $visit) {
             return response()->json([
